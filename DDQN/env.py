@@ -74,9 +74,9 @@ class DroneEnv(object):
         if self.useDepth:
             # get depth image
             responses = self.client.simGetImages(
-                [airsim.ImageRequest(0, airsim.ImageType.DepthPlanner, pixels_as_float=True)])
+                [airsim.ImageRequest(0, airsim.ImageType.DepthPlanar, pixels_as_float=True)])
             response = responses[0]
-            img1d = np.array(response.image_data_float, dtype=np.float)
+            img1d = np.array(response.image_data_float, dtype=np.float64)
             img1d = img1d * 3.5 + 30
             img1d[img1d > 255] = 255
             image = np.reshape(img1d, (responses[0].height, responses[0].width))

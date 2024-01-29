@@ -12,3 +12,4 @@ pygame
 keyboard
 matplotlib
 pymavlink
+tensorboard
