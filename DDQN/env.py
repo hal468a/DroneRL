@@ -5,18 +5,13 @@
 - Contact: subinlab.yang@gmail.com
 - Date: 2019.06.20.
 """
-import csv
-import math
-import pprint
 import time
-
-import torch
-from PIL import Image
-
+import airsim
 import numpy as np
 
-import airsim
-#import setup_path
+from PIL import Image
+
+# import setup_path
 
 MOVEMENT_INTERVAL = 1
 
@@ -31,10 +26,10 @@ class DroneEnv(object):
 
     def step(self, action):
         """Step"""
-        #print("new step ------------------------------")
+        # print("new step ------------------------------")
 
         self.quad_offset = self.interpret_action(action)
-        #print("quad_offset: ", self.quad_offset)
+        # print("quad_offset: ", self.quad_offset)
 
         quad_vel = self.client.getMultirotorState().kinematics_estimated.linear_velocity
         self.client.moveByVelocityAsync(
