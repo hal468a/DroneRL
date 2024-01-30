@@ -113,7 +113,6 @@ class DroneEnv(object):
             else:
                 reward += diff
 
-
             self.last_dist = dist
 
         done = 0

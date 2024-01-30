@@ -174,7 +174,10 @@ class DDQN_Agent:
         rewards = np.asarray(rewards)
         next_states = torch.cat(next_states)
 
-        current_q = self.policy(states)[[range(0, self.batch_size)], [actions]]
+        states_array = np.array(states)  # 將list轉為單一 np.array
+        states_tensor = torch.FloatTensor(states_array).to(device)  # 將 NumPy 轉為 tensor
+        current_q = self.policy(states_tensor)[[range(0, self.batch_size)], [actions]]
+
         next_q = self.target(next_states).cpu().detach().numpy()[[range(0, self.batch_size)], [actions]]
         expected_q = torch.FloatTensor(rewards + (self.gamma * next_q)).to(device)
 
@@ -317,10 +320,18 @@ class DDQN_Agent:
             steps += 1
             score += reward
 
+            with open('TestLog.csv', 'w', newline='') as file:
+                csv_writer = csv.writer(file)
+                csv_writer.writerow(['TEST', 'reward', 'score', 'total steps'])
+
             if done:
                 print("----------------------------------------------------------------------------------------")
                 print("TEST, reward: {}, score: {}, total steps: {}".format(
                     reward, score, self.steps_done))
+                
+                with open('TestLog.csv', 'a', newline='') as file:
+                    csv_writer = csv.writer(file)
+                    csv_writer.writerow([f'TEST {self.episode}', reward, score, self.steps_done])
 
                 with open('tests.txt', 'a') as file:
                     file.write("TEST, reward: {}, score: {}, total steps: {}\n".format(
@@ -341,4 +352,5 @@ class DDQN_Agent:
                 #     video.write(img)
 
                 # video.release()
+
                 break
