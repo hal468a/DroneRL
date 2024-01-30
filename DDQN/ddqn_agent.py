@@ -243,12 +243,12 @@ class DDQN_Agent:
                     reward_history.append(reward)
 
                     # Append data to the CSV file
-                    with open('log.csv', 'a', newline='') as file:
+                    with open('Log\\log.csv', 'a', newline='') as file:
                         csv_writer = csv.writer(file)
                         csv_writer.writerow([self.episode, reward, round(score / steps, 2), score, self.eps_threshold, epoch_steps, self.steps_done])
                     
                     # Append data to the .txt flie
-                    with open('log.txt', 'a') as file:
+                    with open('Log\\log.txt', 'a') as file:
                         file.write("episode:{0}, reward: {1}, mean reward: {2}, score: {3}, epsilon: {4}, epoch steps: {5}, total steps: {6}".format(
                             self.episode, reward, round(score / steps, 2), score, self.eps_threshold, epoch_steps, self.steps_done))
 
@@ -320,7 +320,7 @@ class DDQN_Agent:
             steps += 1
             score += reward
 
-            with open('TestLog.csv', 'w', newline='') as file:
+            with open('Log\\TestLog.csv', 'w', newline='') as file:
                 csv_writer = csv.writer(file)
                 csv_writer.writerow(['TEST', 'reward', 'score', 'total steps'])
 
@@ -329,11 +329,11 @@ class DDQN_Agent:
                 print("TEST, reward: {}, score: {}, total steps: {}".format(
                     reward, score, self.steps_done))
                 
-                with open('TestLog.csv', 'a', newline='') as file:
+                with open('Log\\TestLog.csv', 'a', newline='') as file:
                     csv_writer = csv.writer(file)
                     csv_writer.writerow([f'TEST {self.episode}', reward, score, self.steps_done])
 
-                with open('tests.txt', 'a') as file:
+                with open('Log\\tests.txt', 'a') as file:
                     file.write("TEST, reward: {}, score: {}, total steps: {}\n".format(
                         reward, score, self.steps_done))
 
