@@ -12,7 +12,7 @@ from PIL import Image
 from setuptools import glob
 from env import DroneEnv
 from torch.utils.tensorboard import SummaryWriter
-import time
+import time, csv
 from prioritized_memory import Memory
 
 writer = SummaryWriter()
@@ -102,8 +102,6 @@ class DDQN_Agent:
                   "\nModel: ", file,
                   "\nSteps done: ", self.steps_done,
                   "\nEpisode: ", self.episode)
-
-
         else:
             if os.path.exists("log.txt"):
                 open('log.txt', 'w').close()
@@ -177,7 +175,7 @@ class DDQN_Agent:
         next_states = torch.cat(next_states)
 
         current_q = self.policy(states)[[range(0, self.batch_size)], [actions]]
-        next_q =self.target(next_states).cpu().detach().numpy()[[range(0, self.batch_size)], [actions]]
+        next_q = self.target(next_states).cpu().detach().numpy()[[range(0, self.batch_size)], [actions]]
         expected_q = torch.FloatTensor(rewards + (self.gamma * next_q)).to(device)
 
         errors = torch.abs(current_q.squeeze() - expected_q.squeeze()).cpu().detach().numpy()
@@ -198,6 +196,10 @@ class DDQN_Agent:
         score_history = []
         reward_history = []
 
+        with open('log.csv', 'w', newline='') as file:
+            csv_writer = csv.writer(file)
+            csv_writer.writerow(['episode', 'reward', 'mean reward', 'score', 'epsilon', 'epoch steps', 'total steps'])
+
         if self.episode == -1:
             self.episode = 1
 
@@ -206,6 +208,7 @@ class DDQN_Agent:
             state, _ = self.env.reset()
             steps = 0
             score = 0
+            epoch_steps = 0
             while True:
                 state = self.transformToTensor(state)
 
@@ -220,24 +223,31 @@ class DDQN_Agent:
                 self.learn()
 
                 state = next_state
+                epoch_steps += 1
                 steps += 1
                 score += reward
+
                 if done:
                     print("----------------------------------------------------------------------------------------")
                     if self.memory.tree.n_entries < self.batch_size:
                         print("Training will start after ", self.batch_size - self.memory.tree.n_entries, " steps.")
                         break
 
-                    print(
-                        "episode:{0}, reward: {1}, mean reward: {2}, score: {3}, epsilon: {4}, total steps: {5}".format(
-                            self.episode, reward, round(score / steps, 2), score, self.eps_threshold, self.steps_done))
+                    print("episode:{0}, reward: {1}, mean reward: {2}, score: {3}, epsilon: {4}, epoch steps: {5}, total steps: {6}".format(
+                        self.episode, reward, round(score / steps, 2), score, self.eps_threshold, epoch_steps, self.steps_done))
+                    
                     score_history.append(score)
                     reward_history.append(reward)
+
+                    # Append data to the CSV file
+                    with open('log.csv', 'a', newline='') as file:
+                        csv_writer = csv.writer(file)
+                        csv_writer.writerow([self.episode, reward, round(score / steps, 2), score, self.eps_threshold, epoch_steps, self.steps_done])
+                    
+                    # Append data to the .txt flie
                     with open('log.txt', 'a') as file:
-                        file.write(
-                            "episode:{0}, reward: {1}, mean reward: {2}, score: {3}, epsilon: {4}, total steps: {5}\n".format(
-                                self.episode, reward, round(score / steps, 2), score, self.eps_threshold,
-                                self.steps_done))
+                        file.write("episode:{0}, reward: {1}, mean reward: {2}, score: {3}, epsilon: {4}, epoch steps: {5}, total steps: {6}".format(
+                            self.episode, reward, round(score / steps, 2), score, self.eps_threshold, epoch_steps, self.steps_done))
 
                     if torch.cuda.is_available():
                         print('Total Memory:', self.convert_size(torch.cuda.get_device_properties(0).total_memory))
@@ -322,14 +332,13 @@ class DDQN_Agent:
                 stopWatch = end - start
                 print("Test is done, test time: ", stopWatch)
 
-                # Convert images to video
-                frameSize = (256, 144)
-                import cv2
-                video = cv2.VideoWriter("videos\\test_video_episode_{}_score_{}.avi".format(self.episode, score), cv2.VideoWriter_fourcc(*'DIVX'), 7, frameSize)
+                # # Convert images to video
+                # frameSize = (256, 144)
+                # import cv2
+                # video = cv2.VideoWriter("videos\\test_video_episode_{}_score_{}.avi".format(self.episode, score), cv2.VideoWriter_fourcc(*'DIVX'), 7, frameSize)
 
-                for img in image_array:
-                    video.write(img)
+                # for img in image_array:
+                #     video.write(img)
 
-                video.release()
-
+                # video.release()
                 break
