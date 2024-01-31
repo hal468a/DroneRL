@@ -1,8 +1,8 @@
 runs
 saved models
 last_episode.txt
-log.txt
+Train_log.csv
+Test_log.csv
 .idea
 __pycache__"""
 videos
-tests.txt

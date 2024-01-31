@@ -80,8 +80,8 @@ class DDQN_Agent:
         self.save_dir = os.path.join(cwd, "saved models")
         if not os.path.exists(self.save_dir):
             os.mkdir("saved models")
-        if not os.path.exists(os.path.join(cwd, "videos")):
-            os.mkdir("videos")
+        # if not os.path.exists(os.path.join(cwd, "videos")):
+        #     os.mkdir("videos")
 
         if torch.cuda.is_available():
             self.policy = self.policy.to(device)  # to use GPU
@@ -103,8 +103,8 @@ class DDQN_Agent:
                   "\nSteps done: ", self.steps_done,
                   "\nEpisode: ", self.episode)
         else:
-            if os.path.exists("log.txt"):
-                open('log.txt', 'w').close()
+            if os.path.exists("Train_log.csv"):
+                open('Train_log.csv', 'w').close()
             if os.path.exists("last_episode.txt"):
                 open('last_episode.txt', 'w').close()
             if os.path.exists("last_episode.txt"):
@@ -174,7 +174,7 @@ class DDQN_Agent:
         rewards = np.asarray(rewards)
         next_states = torch.cat(next_states)
 
-        states_array = np.array(states)  # 將list轉為單一 np.array
+        states_array = np.array(states.cpu())  # 將list轉為單一 np.array
         states_tensor = torch.FloatTensor(states_array).to(device)  # 將 NumPy 轉為 tensor
         current_q = self.policy(states_tensor)[[range(0, self.batch_size)], [actions]]
 
@@ -199,7 +199,7 @@ class DDQN_Agent:
         score_history = []
         reward_history = []
 
-        with open('log.csv', 'w', newline='') as file:
+        with open('Train_log.csv', 'w', newline='') as file:
             csv_writer = csv.writer(file)
             csv_writer.writerow(['episode', 'reward', 'mean reward', 'score', 'epsilon', 'epoch steps', 'total steps'])
 
@@ -221,7 +221,7 @@ class DDQN_Agent:
                 if steps == self.max_steps:
                     done = 1
 
-                #self.memorize(state, action, reward, next_state)
+                # self.memorize(state, action, reward, next_state)
                 self.append_sample(state, action, reward, next_state)
                 self.learn()
 
@@ -243,14 +243,14 @@ class DDQN_Agent:
                     reward_history.append(reward)
 
                     # Append data to the CSV file
-                    with open('Log\\log.csv', 'a', newline='') as file:
+                    with open('Train_log.csv', 'a', newline='') as file:
                         csv_writer = csv.writer(file)
                         csv_writer.writerow([self.episode, reward, round(score / steps, 2), score, self.eps_threshold, epoch_steps, self.steps_done])
                     
-                    # Append data to the .txt flie
-                    with open('Log\\log.txt', 'a') as file:
-                        file.write("episode:{0}, reward: {1}, mean reward: {2}, score: {3}, epsilon: {4}, epoch steps: {5}, total steps: {6}".format(
-                            self.episode, reward, round(score / steps, 2), score, self.eps_threshold, epoch_steps, self.steps_done))
+                    # # Append data to the .txt flie
+                    # with open('Train_log.txt', 'a') as file:
+                    #     file.write("episode:{0}, reward: {1}, mean reward: {2}, score: {3}, epsilon: {4}, epoch steps: {5}, total steps: {6}".format(
+                    #         self.episode, reward, round(score / steps, 2), score, self.eps_threshold, epoch_steps, self.steps_done))
 
                     if torch.cuda.is_available():
                         print('Total Memory:', self.convert_size(torch.cuda.get_device_properties(0).total_memory))
@@ -306,6 +306,11 @@ class DDQN_Agent:
         state, next_state_image = self.env.reset()
         image_array.append(next_state_image)
 
+        if not os.path.exists("Test_log.csv"):
+            with open('Test_log.csv', 'w', newline='') as file:
+                csv_writer = csv.writer(file)
+                csv_writer.writerow(['Test_Episode', 'Reward', 'Score', 'Total_steps'])
+
         while True:
             state = self.transformToTensor(state)
 
@@ -320,22 +325,18 @@ class DDQN_Agent:
             steps += 1
             score += reward
 
-            with open('Log\\TestLog.csv', 'w', newline='') as file:
-                csv_writer = csv.writer(file)
-                csv_writer.writerow(['TEST', 'reward', 'score', 'total steps'])
-
             if done:
                 print("----------------------------------------------------------------------------------------")
                 print("TEST, reward: {}, score: {}, total steps: {}".format(
                     reward, score, self.steps_done))
                 
-                with open('Log\\TestLog.csv', 'a', newline='') as file:
+                with open('Test_log.csv', 'a', newline='') as file:
                     csv_writer = csv.writer(file)
-                    csv_writer.writerow([f'TEST {self.episode}', reward, score, self.steps_done])
+                    csv_writer.writerow([self.episode, reward, score, self.steps_done])
 
-                with open('Log\\tests.txt', 'a') as file:
-                    file.write("TEST, reward: {}, score: {}, total steps: {}\n".format(
-                        reward, score, self.steps_done))
+                # with open('tests.txt', 'a') as file:
+                #     file.write("TEST, reward: {}, score: {}, total steps: {}\n".format(
+                #         reward, score, self.steps_done))
 
                 writer.add_scalars('Test', {'score': score, 'reward': reward}, self.episode)
 
