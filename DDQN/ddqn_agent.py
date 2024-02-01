@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from PIL import Image
 from setuptools import glob
-from env import DroneEnv
+from DroneGym.env import DroneEnv
 from torch.utils.tensorboard import SummaryWriter
 import time, csv
 from prioritized_memory import Memory

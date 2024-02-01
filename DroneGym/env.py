@@ -11,8 +11,6 @@ import numpy as np
 
 from PIL import Image
 
-# import setup_path
-
 MOVEMENT_INTERVAL = 1
 
 class DroneEnv(object):
