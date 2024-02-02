@@ -1,10 +1,12 @@
-import os, time
+import sys
+sys.path.append("D:\\DroneWorkspace\\DroneRL")
 
+import os, time
 from Helper import helper
 # from agent import Agent
 from ddqn_agent import DDQN_Agent
 
-hp = helper()
+hp = helper.HP()
 
 if __name__ == "__main__":
 

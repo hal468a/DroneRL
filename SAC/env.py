@@ -1,11 +1,12 @@
+import sys
+sys.path.append("D:\\DroneWorkspace\\DroneRL\\")
+
 import time
+import math
 import airsim
 import numpy as np
 
 from PIL import Image
-
-import sys
-sys.path.append("D:\\DroneWorkspace\\DroneRL\\")
 from setting_folder import settings
 
 MOVEMENT_INTERVAL = 1
@@ -19,21 +20,25 @@ class DroneEnv(object):
         self.quad_offset = (0, 0, 0)
         self.useDepth = useDepth
 
+        self.z = -0.9
+
     def step(self, action):
         """Step"""
         # print("new step ------------------------------")
 
-        self.quad_offset = self.interpret_action(action)
+        # self.quad_offset = self.interpret_action(action)
         # print("quad_offset: ", self.quad_offset)
 
         quad_vel = self.client.getMultirotorState().kinematics_estimated.linear_velocity
-        self.client.moveByVelocityAsync(
-            quad_vel.x_val + self.quad_offset[0],
-            quad_vel.y_val + self.quad_offset[1],
-            quad_vel.z_val + self.quad_offset[2],
-            MOVEMENT_INTERVAL
-        ).join()
-        collision = self.client.simGetCollisionInfo().has_collided
+        
+        # self.client.moveByVelocityAsync(
+        #     quad_vel.x_val + self.quad_offset[0],
+        #     quad_vel.y_val + self.quad_offset[1],
+        #     quad_vel.z_val + self.quad_offset[2],
+        #     MOVEMENT_INTERVAL
+        # ).join()
+
+        collision = self.take_discrete_action(action)
 
         time.sleep(0.5)
         quad_state = self.client.getMultirotorState().kinematics_estimated.position
@@ -87,7 +92,7 @@ class DroneEnv(object):
 
     def get_distance(self, quad_state):
         """Get distance between current state and goal state"""
-        pts = np.array([3, -76, -7])
+        pts = np.array([40, -50, -10])
         quad_pt = np.array(list((quad_state.x_val, quad_state.y_val, quad_state.z_val)))
         dist = np.linalg.norm(quad_pt - pts)
         return dist
@@ -120,18 +125,141 @@ class DroneEnv(object):
 
         return reward, done
 
+    # def interpret_action(self, action):
+    #     """Interprete action"""
+    #     scaling_factor = 3
 
-    def interpret_action(self, action):
-        """Interprete action"""
-        scaling_factor = 3
+    #     if action == 0:
+    #         self.quad_offset = (scaling_factor, 0, 0)
+    #     elif action == 1:
+    #         self.quad_offset = (-scaling_factor, 0, 0)
+    #     elif action == 2:
+    #         self.quad_offset = (0, scaling_factor, 0)
+    #     elif action == 3:
+    #         self.quad_offset = (0, -scaling_factor, 0)
+
+    #     return self.quad_offset
+
+    def get_PRY(self):
+        state = self.client.getMultirotorState() # 無人機狀態
+        quaternion = state.kinematics_estimated.orientation # 四元數
+        pitch, roll, yaw = airsim.to_eularian_angles(quaternion) # 取得 pitch, roll, yaw
+
+        pitch_deg = math.degrees(pitch)
+        roll_deg = math.degrees(roll)
+        yaw_deg = math.degrees(yaw)
+
+        return quaternion, state, pitch_deg, roll_deg, yaw_deg
+    
+    def straight(self, speed, duration):
+
+        quaternion, state, pitch, roll, yaw = self.get_PRY()
+
+        vx = math.cos(yaw) * speed
+        vy = math.sin(yaw) * speed
+        yaw_mode = airsim.YawMode(is_rate=False, yaw_or_rate=0)
+        self.client.moveByVelocityZAsync(vx, vy, self.z, duration, 1, yaw_mode).join()
+
+    def move_right(self, speed, duration):
+
+        quaternion, state, pitch, roll, yaw = self.get_PRY()
+
+        vx = math.sin(yaw) * speed
+        vy = math.cos(yaw) * speed
+        self.client.moveByVelocityZAsync(vx, vy, self.z, duration, 0).join()
+        start = time.time()
+        return start, duration
+
+    def yaw_right(self, rate, duration):
+        self.client.rotateByYawRateAsync(rate, duration).join()
+        start = time.time()
+        return start, duration
+
+    def pitch_up(self, duration):
+        self.client.moveByVelocityAsync(0, 0, 1, duration, 1).join()
+        start = time.time()
+        return start, duration
+
+    def pitch_down(self, duration):
+        # yaw_mode = airsim.YawMode(is_rate=False, yaw_or_rate=0)
+        self.client.moveByVelocityAsync(0, 0, -1, duration, 1).join()
+        start = time.time()
+        return start, duration
+
+    def move_forward_Speed(self, speed_x = 0.5, speed_y = 0.5, duration = 0.5):
+        
+        quaternion, state, pitch, roll, yaw = self.get_PRY()
+
+        vel = state.kinematics_estimated.linear_velocity # 取得速度
+
+        vx = math.cos(yaw) * speed_x + math.sin(yaw) * speed_y
+        vy = math.sin(yaw) * speed_x - math.cos(yaw) * speed_y
+
+        drivetrain = 1
+        yaw_mode = airsim.YawMode(is_rate= False, yaw_or_rate = 0)
+
+        self.client.moveByVelocityAsync(vx = (vx + vel.x_val) / 2 ,
+                             vy = (vy + vel.y_val) / 2 , #do this to try and smooth the movement
+                             vz = self.z,
+                             duration = duration,
+                             drivetrain = drivetrain,
+                             yaw_mode=yaw_mode
+                            ).join()
+        start = time.time()
+        return start, duration
+    
+    def take_discrete_action(self, action):
 
         if action == 0:
-            self.quad_offset = (scaling_factor, 0, 0)
-        elif action == 1:
-            self.quad_offset = (-scaling_factor, 0, 0)
-        elif action == 2:
-            self.quad_offset = (0, scaling_factor, 0)
-        elif action == 3:
-            self.quad_offset = (0, -scaling_factor, 0)
+            self.straight(settings.mv_fw_spd_2, settings.rot_dur)
+        if action == 1:
+            self.straight(settings.mv_fw_spd_3, settings.rot_dur)
+        if action == 2:
+            # self.yaw_right(settings.yaw_rate_1_2, settings.rot_dur/2)
+            # self.straight(settings.mv_fw_spd_3, settings.rot_dur/2)
+            self.move_forward_Speed(settings.mv_fw_spd_2*math.cos(0.314),
+                                    settings.mv_fw_spd_2*math.sin(0.314), settings.rot_dur)
+        if action == 3:
+            # self.yaw_right(settings.yaw_rate_1_2, settings.rot_dur / 2)
+            # self.straight(settings.mv_fw_spd_4, settings.rot_dur / 2)
+            self.move_forward_Speed(settings.mv_fw_spd_3 * math.cos(0.314),
+                                    settings.mv_fw_spd_3 * math.sin(0.314), settings.rot_dur)
+        if action == 4:
+            # self.yaw_right(settings.yaw_rate_2_2, settings.rot_dur / 2)
+            # self.straight(settings.mv_fw_spd_4, settings.rot_dur / 2)
+            self.move_forward_Speed(settings.mv_fw_spd_2 * math.cos(0.314),
+                                    -settings.mv_fw_spd_2 * math.sin(0.314), settings.rot_dur)
+        if action == 5:
+            # self.yaw_right(settings.yaw_rate_2_2, settings.rot_dur / 2)
+            # self.straight(settings.mv_fw_spd_4, settings.rot_dur / 2)
+            self.move_forward_Speed(settings.mv_fw_spd_3 * math.cos(0.314),
+                                    -settings.mv_fw_spd_3 * math.sin(0.314), settings.rot_dur)
+        if action == 6:
+            self.yaw_right(settings.yaw_rate_1_2, settings.rot_dur )
+        if action == 7:
+            self.yaw_right(settings.yaw_rate_2_2, settings.rot_dur)
 
-        return self.quad_offset
+        collision = self.client.simGetCollisionInfo().has_collided
+
+        return collision
+    
+    def take_continious_action(self, action):
+
+        if(settings.control_mode=="moveByVelocity"):
+            action=np.clip(action, -0.3, 0.3)
+
+            detla_x = action[0]
+            detla_y = action[1]
+            v=self.drone_velocity()
+            v_x = v[0] + detla_x
+            v_y = v[1] + detla_y
+
+            yaw_mode = airsim.YawMode(is_rate=False, yaw_or_rate=0)
+            self.client.moveByVelocityZAsync(v_x, v_y, self.z, 0.35, 1, yaw_mode).join()
+
+        else:
+            raise NotImplementedError
+
+        collision = self.client.simGetCollisionInfo().has_collided
+        return collision
+        # Todo : Stabilize drone
