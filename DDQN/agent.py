@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from PIL import Image
 from setuptools import glob
-from DroneGym.env import DroneEnv
+from DDQN.env import DroneEnv
 from torch.utils.tensorboard import SummaryWriter
 import time
 

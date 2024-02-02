@@ -1,15 +1,12 @@
-#! /usr/bin/env python
-"""Environment for Microsoft AirSim Unity Quadrotor using AirSim python API
-
-- Author: Subin Yang
-- Contact: subinlab.yang@gmail.com
-- Date: 2019.06.20.
-"""
 import time
 import airsim
 import numpy as np
 
 from PIL import Image
+
+import sys
+sys.path.append("D:\\DroneWorkspace\\DroneRL\\")
+from setting_folder import settings
 
 MOVEMENT_INTERVAL = 1
 

@@ -1,18 +1,16 @@
-import math
-import random
-from collections import deque
-import airsim
-import os
 import numpy as np
+import os, csv, math, time, random
+
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-from PIL import Image
-from setuptools import glob
-from DroneGym.env import DroneEnv
+import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
-import time, csv
+
+# from PIL import Image
+from setuptools import glob
+# from collections import deque
+from env import DroneEnv
 from prioritized_memory import Memory
 
 writer = SummaryWriter()
