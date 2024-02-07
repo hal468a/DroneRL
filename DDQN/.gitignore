@@ -4,5 +4,5 @@ last_episode.txt
 Train_log.csv
 Test_log.csv
 .idea
-**/__pycache__
+__pycache__
 videos
