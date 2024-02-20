@@ -10,7 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 # from PIL import Image
 from setuptools import glob
 # from collections import deque
-from env import DroneEnv
+from DDQN.env import DroneEnv
 from prioritized_memory import Memory
 
 writer = SummaryWriter()
@@ -37,7 +37,6 @@ class DQN(nn.Module):
         x = x.view(x.size(0), -1)
         x = F.relu(self.fc4(x))
         return self.fc5(x)
-
 
 class DDQN_Agent:
     def __init__(self, useDepth=False):

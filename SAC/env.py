@@ -26,18 +26,17 @@ class DroneEnv(object):
         """Step"""
         # print("new step ------------------------------")
 
-        # self.quad_offset = self.interpret_action(action)
+        self.quad_offset = self.interpret_action(action)
         # print("quad_offset: ", self.quad_offset)
 
         quad_vel = self.client.getMultirotorState().kinematics_estimated.linear_velocity
         
-        # self.client.moveByVelocityAsync(
-        #     quad_vel.x_val + self.quad_offset[0],
-        #     quad_vel.y_val + self.quad_offset[1],
-        #     quad_vel.z_val + self.quad_offset[2],
-        #     MOVEMENT_INTERVAL
-        # ).join()
-
+        self.client.moveByVelocityAsync(
+            quad_vel.x_val + self.quad_offset[0],
+            quad_vel.y_val + self.quad_offset[1],
+            quad_vel.z_val + self.quad_offset[2],
+            MOVEMENT_INTERVAL
+        ).join()
         collision = self.take_discrete_action(action)
 
         time.sleep(0.5)
@@ -125,20 +124,20 @@ class DroneEnv(object):
 
         return reward, done
 
-    # def interpret_action(self, action):
-    #     """Interprete action"""
-    #     scaling_factor = 3
+    def interpret_action(self, action):
+        """Interprete action"""
+        scaling_factor = 3
 
-    #     if action == 0:
-    #         self.quad_offset = (scaling_factor, 0, 0)
-    #     elif action == 1:
-    #         self.quad_offset = (-scaling_factor, 0, 0)
-    #     elif action == 2:
-    #         self.quad_offset = (0, scaling_factor, 0)
-    #     elif action == 3:
-    #         self.quad_offset = (0, -scaling_factor, 0)
+        if action == 0:
+            self.quad_offset = (scaling_factor, 0, 0)
+        elif action == 1:
+            self.quad_offset = (-scaling_factor, 0, 0)
+        elif action == 2:
+            self.quad_offset = (0, scaling_factor, 0)
+        elif action == 3:
+            self.quad_offset = (0, -scaling_factor, 0)
 
-    #     return self.quad_offset
+        return self.quad_offset
 
     def get_PRY(self):
         state = self.client.getMultirotorState() # 無人機狀態

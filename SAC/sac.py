@@ -58,7 +58,7 @@ class SAC_Agent:
         self.network_update_interval = 10
         self.episode = -1
         self.steps_done = 0
-        self.max_steps = 99 # 34
+        self.max_steps = 34 # 34
 
         self.policy = SAC()
         self.target = SAC()
@@ -354,5 +354,5 @@ class SAC_Agent:
                 #     video.write(img)
 
                 # video.release()
-
+                
                 break
