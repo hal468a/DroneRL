@@ -3,9 +3,9 @@ import argparse
 
 def replace_json_content(new_content):
     if new_content == "PX4":
-        file_path = "C:\\Users\\Louis\\Documents\\AirSim\\airsim-setting\\PX4.json"
+        file_path = "PX4.json"
     elif new_content == "Xbox":
-        file_path = "C:\\Users\\Louis\\Documents\\AirSim\\airsim-setting\\Xbox.json"
+        file_path = "Xbox.json"
     else:
         file_path = None
         print("File Path error!!!")
