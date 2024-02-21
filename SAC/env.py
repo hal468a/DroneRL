@@ -17,6 +17,7 @@ class DroneEnv(object):
     def __init__(self, useDepth=False):
         self.client = airsim.MultirotorClient()
         self.last_dist = self.get_distance(self.client.getMultirotorState().kinematics_estimated.position)
+        self.collision = False
         self.quad_offset = (0, 0, 0)
         self.useDepth = useDepth
 
@@ -37,7 +38,9 @@ class DroneEnv(object):
             quad_vel.z_val + self.quad_offset[2],
             MOVEMENT_INTERVAL
         ).join()
+
         collision = self.take_discrete_action(action)
+        # print(f"Collision: {collision}、DType: {type(collision)}")
 
         time.sleep(0.5)
         quad_state = self.client.getMultirotorState().kinematics_estimated.position
@@ -103,6 +106,7 @@ class DroneEnv(object):
 
         if collision:
             reward = -50
+            self.reset() # 如果發生碰撞直接結束訓練
         else:
             dist = self.get_distance(quad_state)
             diff = self.last_dist - dist
@@ -111,7 +115,6 @@ class DroneEnv(object):
                 reward = 500
             else:
                 reward += diff
-
             self.last_dist = dist
 
         done = 0
