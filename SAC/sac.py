@@ -202,7 +202,7 @@ class SAC_Agent:
 
         with open('Train_log.csv', 'w', newline='') as file:
             csv_writer = csv.writer(file)
-            csv_writer.writerow(['episode', 'reward', 'mean reward', 'score', 'epsilon', 'epoch steps', 'total steps'])
+            csv_writer.writerow(['episode', 'reward', 'mean reward', 'score', 'epsilon', 'steps', 'total steps'])
 
         if self.episode == -1:
             self.episode = 1

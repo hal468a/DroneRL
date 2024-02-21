@@ -106,7 +106,7 @@ class DroneEnv(object):
 
         if collision:
             reward = -50
-            self.reset() # 如果發生碰撞直接結束訓練
+            self.reset() # 如果發生碰撞直接reset，開始下一輪訓練。
         else:
             dist = self.get_distance(quad_state)
             diff = self.last_dist - dist
