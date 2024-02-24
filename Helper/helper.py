@@ -6,7 +6,7 @@ class HP():
         self.name = "helper"
     
     # 選擇要啟動的環境
-    def activate_env(self):
+    def activate_env_win(self):
 
         env_path = ""
         file_type = [("exe file", '*.exe')]
