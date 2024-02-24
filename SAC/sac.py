@@ -16,7 +16,7 @@ from setuptools import glob
 from env import DroneEnv
 from DDQN.prioritized_memory import Memory
 
-writer = SummaryWriter("D:\\DroneWorkspace\\DroneRL\\SAC\\TensorboardLog")
+writer = SummaryWriter()
 
 torch.manual_seed(0)
 random.seed(0)

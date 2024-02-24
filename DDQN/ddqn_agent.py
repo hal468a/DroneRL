@@ -54,7 +54,7 @@ class DDQN_Agent:
         self.network_update_interval = 10
         self.episode = -1
         self.steps_done = 0
-        self.max_steps = 34
+        self.max_steps = 49
 
         self.policy = DQN()
         self.target = DQN()
